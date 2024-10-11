@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void findLIS(vector<int> A, int n,const ofstream outfile){
+vector<int> findLIS(vector<int> A, int n){
     vector<int> dp(n, 1), parent(n, -1);
     
     // Calcul de la longueur de LIS
@@ -39,10 +39,7 @@ void findLIS(vector<int> A, int n,const ofstream outfile){
     // reverse(lis_indices.begin(), lis_indices.end());
     
     // Sortie
-    outfile << lis_length << endl;
-    for (int i = 0; i < lis_length; ++i) {
-        outfile << lis_sequence[i] << " (Index: " << lis_indices[i] << ")" << endl;
-    }
+    return lis_indices;
 }
 
 int main(){
@@ -53,12 +50,16 @@ int main(){
     infile >> n;
     cout << n << endl;
     vector<int> A(n);
-    for (int i = 0; i < n; i++) {
+    for (int i = 1; i < n; i++) {
         infile >> A[i];
     }
 
-    findLIS(A, n, outfile);
+    vector<int> result_index = findLIS(A, n);
 
+    outfile << result_index.size() << endl;
+    for (int i :result_index) {
+        outfile << i << " (Index: " << A[i] << ")" << endl;
+    }
     infile.close();
     outfile.close();
     return 0;
