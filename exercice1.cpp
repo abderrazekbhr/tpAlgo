@@ -1,13 +1,14 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
 
 vector<int> findLIS(vector<int> A, int n){
     vector<int> dp(n, 1), parent(n, -1);
     
-    // Calcul de la longueur de LIS
+    // Calcul de la longueur de la LIS
     for (int i = 1; i < n; ++i) {
         for (int j = 0; j < i; ++j) {
             if (A[j] < A[i] && dp[i] < dp[j] + 1) {
@@ -27,18 +28,14 @@ vector<int> findLIS(vector<int> A, int n){
     }
     
     // Reconstruction de la sous-séquence
-    vector<int> lis_sequence;
     vector<int> lis_indices;
     for (int i = lis_end_index; i != -1; i = parent[i]) {
-        lis_sequence.push_back(A[i]);
-        lis_indices.push_back(i + 1);  // Ajoute 1 pour les indices 1-based
+        lis_indices.push_back(i);  // Garder les indices 0-based
     }
     
-    // Affichage dans l'ordre croissant
-    // reverse(lis_sequence.begin(), lis_sequence.end());
-    // reverse(lis_indices.begin(), lis_indices.end());
+    // On renverse les indices pour obtenir la séquence croissante
+    reverse(lis_indices.begin(), lis_indices.end());
     
-    // Sortie
     return lis_indices;
 }
 
@@ -48,18 +45,23 @@ int main(){
     
     int n;
     infile >> n;
-    cout << n << endl;
     vector<int> A(n);
-    for (int i = 1; i < n; i++) {
+    
+    for (int i = 0; i < n; i++) {
         infile >> A[i];
     }
 
     vector<int> result_index = findLIS(A, n);
 
+    // Écriture de la longueur de la LIS
     outfile << result_index.size() << endl;
-    for (int i :result_index) {
-        outfile << i << " (Index: " << A[i] << ")" << endl;
+    
+    // Écriture des éléments de la séquence et leurs indices
+    for (int i = 0; i < result_index.size(); i++) { 
+        int idx = result_index[i];  // Indice 0-based
+        outfile << "a[" << (idx + 1) << "] = " << A[idx] << endl;  // idx + 1 pour 1-based
     }
+
     infile.close();
     outfile.close();
     return 0;

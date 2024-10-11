@@ -1,9 +1,4 @@
-8
-10 (Index: 9)
-9 (Index: 20)
-8 (Index: 6)
-7 (Index: 5)
-4 (Index: 8)
-3 (Index: 3)
-2 (Index: 2)
-1 (Index: 1)
+3
+a[1] = 1
+a[2] = 2
+a[3] = 6
