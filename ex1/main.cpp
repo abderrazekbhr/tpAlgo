@@ -8,7 +8,7 @@ using namespace std;
 vector<int> findLIS(vector<int> A, int n){
     vector<int> dp(n, 1), parent(n, -1);
     
-    // Calcul de la longueur de la LIS
+    // Computing the length of LIS
     for (int i = 1; i < n; ++i) {
         for (int j = 0; j < i; ++j) {
             if (A[j] < A[i] && dp[i] < dp[j] + 1) {
@@ -18,7 +18,7 @@ vector<int> findLIS(vector<int> A, int n){
         }
     }
     
-    // Trouver la longueur maximale et son indice
+    // Finding the maximum length and its indice
     int lis_length = 0, lis_end_index = 0;
     for (int i = 0; i < n; ++i) {
         if (dp[i] > lis_length) {
@@ -27,13 +27,13 @@ vector<int> findLIS(vector<int> A, int n){
         }
     }
     
-    // Reconstruction de la sous-séquence
+    // Rebuilding of the subsequence
     vector<int> lis_indices;
     for (int i = lis_end_index; i != -1; i = parent[i]) {
         lis_indices.push_back(i);  // Garder les indices 0-based
     }
     
-    // On renverse les indices pour obtenir la séquence croissante
+    // Reversing indices to get the growing list
     reverse(lis_indices.begin(), lis_indices.end());
     
     return lis_indices;

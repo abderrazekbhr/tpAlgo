@@ -1,80 +1,93 @@
 #include <iostream>
-#include <vector>
 #include <fstream>
+#include <vector>
 #include <algorithm>
 
 using namespace std;
 
-int main()
-{
-    // Lecture du fichier d'entrée
-    ifstream infile("INPDIVSEQ.TXT");
-    int n, k;
-    infile >> n >> k;
+int n, k;
+vector<int> a;
+vector<vector<int>> memo;
+vector<vector<int>> previous;  // Pour suivre les indices pour la reconstruction
 
-    vector<int> a(n);
-    for (int i = 0; i < n; ++i)
-    {
-        infile >> a[i];
-    }
-    infile.close();
-
-    // Table DP pour stocker la longueur maximale de sous-séquence pour chaque reste [0, k-1]
-    vector<int> dp(k, -1);
-    dp[0] = 0; // Le reste 0 a une sous-séquence de longueur 0 au début
-
-    vector<vector<int>> subsequences(k); // Stocke les éléments de sous-séquences pour chaque reste
-    vector<vector<int>> indices(k);      // Stocke les indices des éléments pour chaque sous-séquence
-
-    // Traitement de chaque élément dans le tableau
-    for (int i = 0; i < n; ++i)
-    {
-        vector<int> new_dp(dp);
-        vector<vector<int>> new_subsequences(subsequences);
-        vector<vector<int>> new_indices(indices);
-
-        for (int j = 0; j < k; ++j)
-        {
-            if (dp[j] != -1)
-            { // Considère seulement les sous-séquences valides
-                int new_remainder = (j + a[i]) % k;
-                if (new_dp[new_remainder] < dp[j] + 1)
-                {
-                    new_dp[new_remainder] = dp[j] + 1;
-                    new_subsequences[new_remainder] = subsequences[j];
-                    new_subsequences[new_remainder].push_back(a[i]);
-                    new_indices[new_remainder] = indices[j];
-                    new_indices[new_remainder].push_back(i + 1); // Stocke l'indice (1-indexé)
-                }
-            }
-        }
-
-        // Considère le démarrage d'une nouvelle sous-séquence avec l'élément courant
-        int current_remainder = a[i] % k;
-        if (new_dp[current_remainder] < 1)
-        {
-            new_dp[current_remainder] = 1;
-            new_subsequences[current_remainder] = {a[i]};
-            new_indices[current_remainder] = {i + 1}; // 1-indexé
-        }
-
-        dp = new_dp;
-        subsequences = new_subsequences;
-        indices = new_indices;
+// Fonction récursive avec mémoïsation
+int findMaxSubsequence(int index, int mod) {
+    // Si on a dépassé le dernier élément
+    if (index == n) {
+        return (mod == 0) ? 0 : -100000; // Si la somme mod k est 0, on retourne 0 (valid), sinon une grande valeur négative
     }
 
-    // Le résultat est la sous-séquence avec un reste de 0
-    ofstream outfile("OUTDIVSEQ.TXT");
-    outfile << dp[0] << endl; // La longueur de la plus longue sous-séquence
+    // Si on a déjà calculé ce sous-problème
+    if (memo[index][mod] != -1) {
+        return memo[index][mod];
+    }
 
+    // Ne pas prendre l'élément a[index]
+    int exclude = findMaxSubsequence(index + 1, mod);
+
+    // Prendre l'élément a[index]
+    int newMod = (mod + a[index]) % k;
+    int include = 1 + findMaxSubsequence(index + 1, newMod);
+
+    // Trouver la meilleure solution et mémoriser l'indice
+    if (include > exclude) {
+        memo[index][mod] = include;
+        previous[index][mod] = 1;  // 1 signifie qu'on inclut cet élément
+    } else {
+        memo[index][mod] = exclude;
+        previous[index][mod] = 0;  // 0 signifie qu'on exclut cet élément
+    }
+
+    return memo[index][mod];
+}
+
+// Fonction pour reconstruire la sous-séquence et afficher les indices
+void buildSubsequence(int index, int mod, vector<int>& subsequence, vector<int>& indices) {
+    while (index < n) {
+        if (previous[index][mod] == 1) {  // Si on a inclus cet élément
+            subsequence.push_back(a[index]);
+            indices.push_back(index + 1);  // On ajoute l'indice (+1 pour base 1)
+            mod = (mod + a[index]) % k;  // Mettre à jour le mod
+        }
+        index++;  // Passer à l'élément suivant
+    }
+}
+
+int main() {
+    ifstream inFile("INPDIVSEQ.txt");
+    ofstream outFile("OUTDIVSEQ.txt");
+
+    inFile >> n >> k;
+    a.resize(n);
+    memo.assign(n, vector<int>(k, -1));  // Initialise le tableau de mémoïsation
+    previous.assign(n, vector<int>(k, -1));  // Pour reconstruire la séquence
+
+    for (int i = 0; i < n; ++i) {
+        inFile >> a[i];
+    }
+
+    // Appeler la fonction récursive
+    int maxLength = findMaxSubsequence(0, 0);
+
+    // Sortie : La longueur de la sous-séquence
+    outFile << maxLength << endl;
+
+    // Reconstruire la sous-séquence et ses indices
+    vector<int> subsequence;
+    vector<int> indices;
+    buildSubsequence(0, 0, subsequence, indices);
+
+    // Sortie : Les éléments de la sous-séquence avec indices
+    for (int i = indices.size() - 1; i >= 0; --i) {
+        outFile << "a[" << indices[i] << "] = " << subsequence[i] << endl;
+    }
+
+    // Sortie : La somme de la sous-séquence
     int sum = 0;
-    for (size_t i = 0; i < subsequences[0].size(); ++i)
-    {
-        outfile << "a[" << indices[0][i] << "]=" << subsequences[0][i] << endl;
-        sum += subsequences[0][i];
+    for (int elem : subsequence) {
+        sum += elem;
     }
-    outfile << "Sum = " << sum << endl; // La somme des éléments
-    outfile.close();
+    outFile << "Sum = " << sum << endl;
 
     return 0;
 }
