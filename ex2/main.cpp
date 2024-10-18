@@ -1,92 +1,93 @@
 #include <iostream>
-#include <vector>
 #include <fstream>
+#include <vector>
 #include <algorithm>
 
 using namespace std;
 
-struct Subsequence {
-    int length;  // Longueur de la sous-séquence
-    int parent;  // Indice du précédent élément dans la sous-séquence
-    int sum_mod; // Somme mod k
-};
+int n, k;
+vector<int> a;
+vector<vector<int>> memo;
+vector<vector<int>> previous;  // Pour suivre les indices pour la reconstruction
 
-vector<int> findDivisibleSubsequence(const vector<int>& A, int n, int k) {
-    vector<vector<Subsequence>> dp(n + 1, vector<Subsequence>(k, {-1, -1, 0}));
-    
-    dp[0][0] = {0, -1, 0};  // Initialisation: la somme modulo k de 0 peut être atteinte avec 0 éléments
-    
-    // Calcul dynamique
-    for (int i = 1; i <= n; ++i) {
-        for (int r = 0; r < k; ++r) {
-            // Ne pas inclure l'élément A[i-1]
-            dp[i][r] = dp[i-1][r];
-        }
-        for (int r = 0; r < k; ++r) {
-            if (dp[i-1][r].length != -1) {
-                int new_r = (r + A[i-1]) % k;
-                if (dp[i][new_r].length < dp[i-1][r].length + 1) {
-                    dp[i][new_r] = {dp[i-1][r].length + 1, i - 1, new_r};
-                }
-            }
-        }
+// Fonction récursive avec mémoïsation
+int findMaxSubsequence(int index, int mod) {
+    // Si on a dépassé le dernier élément
+    if (index == n) {
+        return (mod == 0) ? 0 : -100000; // Si la somme mod k est 0, on retourne 0 (valid), sinon une grande valeur négative
     }
-    for (int r = 0; r<k; r++){
-        for (int i=0; i <n; i++){
-            
-            cout << "{" << dp[i][r].length << ", " << dp[i][r].parent << ", " << dp[i][r].sum_mod << "},\t ";
+
+    // Si on a déjà calculé ce sous-problème
+    if (memo[index][mod] != -1) {
+        return memo[index][mod];
+    }
+
+    // Ne pas prendre l'élément a[index]
+    int exclude = findMaxSubsequence(index + 1, mod);
+
+    // Prendre l'élément a[index]
+    int newMod = (mod + a[index]) % k;
+    int include = 1 + findMaxSubsequence(index + 1, newMod);
+
+    // Trouver la meilleure solution et mémoriser l'indice
+    if (include > exclude) {
+        memo[index][mod] = include;
+        previous[index][mod] = 1;  // 1 signifie qu'on inclut cet élément
+    } else {
+        memo[index][mod] = exclude;
+        previous[index][mod] = 0;  // 0 signifie qu'on exclut cet élément
+    }
+
+    return memo[index][mod];
+}
+
+// Fonction pour reconstruire la sous-séquence et afficher les indices
+void buildSubsequence(int index, int mod, vector<int>& subsequence, vector<int>& indices) {
+    while (index < n) {
+        if (previous[index][mod] == 1) {  // Si on a inclus cet élément
+            subsequence.push_back(a[index]);
+            indices.push_back(index + 1);  // On ajoute l'indice (+1 pour base 1)
+            mod = (mod + a[index]) % k;  // Mettre à jour le mod
         }
-        cout << endl;
+        index++;  // Passer à l'élément suivant
     }
-    // Trouver la sous-séquence ayant une somme modulo k égale à 0
-    vector<int> result;
-    int current_r = 0;
-    int current_i = n;
-    
-    // Reconstruction de la sous-séquence
-    while (current_i > 0 && dp[current_i][current_r].parent != -1) {
-        int parent_idx = dp[current_i][current_r].parent;
-        result.push_back(parent_idx + 1); // Ajoute 1 pour un indice 1-based
-        int element_value = A[parent_idx];
-        
-        current_r = (current_r - element_value % k + k) % k;
-        current_i = parent_idx;
-    }
-    
-    // On renverse le résultat pour avoir les indices dans le bon ordre
-    reverse(result.begin(), result.end());
-    return result;
 }
 
 int main() {
-    ifstream infile("INPDIVSEQ.txt");
-    ofstream outfile("OUTDIVSEQ.txt");
-    
-    int n, k;
-    infile >> n >> k;
-    vector<int> A(n);
-    
+    ifstream inFile("INPDIVSEQ.txt");
+    ofstream outFile("OUTDIVSEQ.txt");
+
+    inFile >> n >> k;
+    a.resize(n);
+    memo.assign(n, vector<int>(k, -1));  // Initialise le tableau de mémoïsation
+    previous.assign(n, vector<int>(k, -1));  // Pour reconstruire la séquence
+
     for (int i = 0; i < n; ++i) {
-        infile >> A[i];
+        inFile >> a[i];
     }
-    
-    vector<int> result_indices = findDivisibleSubsequence(A, n, k);
-    
-    // Écriture de la longueur de la sous-séquence dans le fichier de sortie
-    outfile << result_indices.size() << endl;
-    
-    // Écriture des éléments de la sous-séquence dans le fichier de sortie
-    int total_sum = 0;
-    for (int idx : result_indices) {
-        outfile << "a[" << idx << "] = " << A[idx - 1] << endl;
-        total_sum += A[idx - 1];
+
+    // Appeler la fonction récursive
+    int maxLength = findMaxSubsequence(0, 0);
+
+    // Sortie : La longueur de la sous-séquence
+    outFile << maxLength << endl;
+
+    // Reconstruire la sous-séquence et ses indices
+    vector<int> subsequence;
+    vector<int> indices;
+    buildSubsequence(0, 0, subsequence, indices);
+
+    // Sortie : Les éléments de la sous-séquence avec indices
+    for (int i = indices.size() - 1; i >= 0; --i) {
+        outFile << "a[" << indices[i] << "] = " << subsequence[i] << endl;
     }
-    
-    // Écriture de la somme des éléments dans le fichier de sortie
-    outfile << "Sum = " << total_sum << endl;
-    
-    infile.close();
-    outfile.close();
-    
+
+    // Sortie : La somme de la sous-séquence
+    int sum = 0;
+    for (int elem : subsequence) {
+        sum += elem;
+    }
+    outFile << "Sum = " << sum << endl;
+
     return 0;
 }
