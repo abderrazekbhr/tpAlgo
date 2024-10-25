@@ -1,0 +1,16 @@
+Comparaison entre les trois méthodes en termes de mémoire et d'efficacité de calcul :
+Matrice d’adjacence (méthode 5.1) :
+
+Mémoire : La matrice d’adjacence occupe beaucoup de mémoire puisqu’elle enregistre chaque connexion possible entre les sommets. Ce format est souvent moins pratique pour les graphes avec peu de connexions (graphes "clairsemés").
+Efficacité de calcul : Pour trouver le chemin le plus court, cette méthode examine chaque sommet à plusieurs reprises, ce qui prend beaucoup de temps lorsque le nombre de sommets est grand.
+Liste d’adjacence (méthode 5.2) :
+
+Mémoire : La liste d’adjacence consomme moins de mémoire car elle ne garde que les connexions existantes. Cela est particulièrement utile pour les graphes avec peu de connexions.
+Efficacité de calcul : Cette méthode est plus rapide pour trouver le chemin le plus court, car elle ne regarde que les connexions réellement présentes et, avec une file d'attente de priorité, il devient plus facile d’atteindre l'objectif de l'algorithme.
+Utilisation d’un tas pour les distances minimales (méthode 5.3) :
+
+Mémoire : L’approche avec un tas en combinaison avec une liste d’adjacence utilise moins de mémoire, car elle conserve uniquement les informations nécessaires pour les sommets connectés.
+Efficacité de calcul : En s’appuyant sur le tas pour suivre les distances les plus courtes, cette méthode est plus efficace pour les grands graphes avec peu de connexions, car elle permet de trouver plus rapidement les distances minimales.
+Avantages des méthodes 5.2 et 5.3 par rapport à 5.1 :
+Mémoire : Les méthodes avec liste d’adjacence (5.2 et 5.3) sont plus économes en mémoire que celle avec matrice d’adjacence (5.1), surtout pour les graphes avec peu de connexions.
+Efficacité de calcul : La méthode avec un tas (5.3) permet de trouver les distances minimales plus efficacement, ce qui la rend plus rapide que la matrice pour les graphes avec un grand nombre de sommets et peu de connexions.

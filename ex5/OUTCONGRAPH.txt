@@ -1,2 +1,13 @@
 15
 1 → 2 → 3 → 6 → 5 → 4
+15
+1 → 2 → 3 → 6 → 5 → 4
+15
+1 → 2 → 3 → 6 → 5 → 4
+Tous les chemins depuis le sommet de départ :
+Sommet 1 : 1 (Distance: 0)
+Sommet 2 : 1 2 (Distance: 1)
+Sommet 3 : 1 2 3 (Distance: 3)
+Sommet 4 : 1 2 3 6 5 4 (Distance: 15)
+Sommet 5 : 1 2 3 6 5 (Distance: 10)
+Sommet 6 : 1 2 3 6 (Distance: 6)
